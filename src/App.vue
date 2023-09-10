@@ -4,7 +4,7 @@ import Vial from './components/Vial.vue';
 
 <template>
   <div style="display: grid; gap: 2rem; grid-template-columns: repeat(6, 1fr);">
-    <vial v-for="(vial, index) in vials" :vial-content="vial" @click="handleSelect(index)"
+    <vial v-for="(vial, index) in vials" :id="'vial' + String(index)" :vial-content="vial" @click="handleSelect(index)"
       :class="{ 'selected': selection == index }" />
   </div>
 </template>
@@ -22,6 +22,16 @@ const colors = [
   "#4F709C",
   "#E5D283",
 ]
+const newspaperSpinning = [
+  { transform: "rotate(0) scale(1)" },
+  { transform: "rotate(25deg) scale(1)" },
+  { transform: "rotate(0deg) scale(1)" },
+];
+
+const newspaperTiming = {
+  duration: 1000,
+  iterations: 1,
+};
 
 export default {
   data() {
@@ -37,7 +47,13 @@ export default {
     getRandomInt: function (max) {
       return Math.floor(Math.random() * max);
     },
-
+    distanceBetweenElements: function (first, second) {
+      const originElement = document.querySelector(first);
+      const destinationElement = document.querySelector(second);
+      let originBB = originElement.getBoundingClientRect()
+      let destinationBB = destinationElement.getBoundingClientRect()
+      return { x: Math.round(destinationBB.x + destinationBB.width / 2 - originBB.x), y: Math.round(destinationBB.y - originBB.y) }
+    },
     fillVials: function () {
       let pool = {}
       colors.forEach((element) => {
@@ -77,6 +93,12 @@ export default {
         const destinationTopColor = this.vials[index].pop()
         console.log(originTopColor, destinationTopColor)
         if ((originTopColor == destinationTopColor) || (destinationTopColor == null)) {
+          const distance = this.distanceBetweenElements("#vial" + String(this.selection), "#vial" + String(index))
+          console.log(distance)
+          document.querySelector("#vial" + String(this.selection)).animate([{ transform: "rotate(0) scale(1)" },
+          { transform: `rotate(15deg) scale(1) translate(${distance.x}px, ${distance.y}px)` },
+          { transform: "rotate(0deg) scale(1)" }], newspaperTiming)
+
           if (destinationTopColor)
             this.vials[index].push(destinationTopColor)
           this.vials[index].push(originTopColor)
